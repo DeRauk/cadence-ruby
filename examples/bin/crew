@@ -5,6 +5,9 @@ require 'cadence/crew'
 require 'cadence/worker'
 
 init = proc do |worker|
+  require 'grpc'
+  require_relative '../route_guide_services_pb'
+
   Dir[File.expand_path('../workflows/*.rb', __dir__)].each { |f| require f }
   Dir[File.expand_path('../activities/*.rb', __dir__)].each { |f| require f }
   Dir[File.expand_path('../middleware/*.rb', __dir__)].each { |f| require f }
@@ -49,6 +52,8 @@ init = proc do |worker|
 
   worker.add_decision_middleware(LoggingMiddleware, 'EXAMPLE')
   worker.add_activity_middleware(LoggingMiddleware, 'EXAMPLE')
+
+  Routeguide::RouteGuide::Stub.new('localhost:50051', :this_channel_is_insecure)
 end
 
 worker = Cadence::Worker.new(polling_ttl: 10, thread_pool_size: 20)
